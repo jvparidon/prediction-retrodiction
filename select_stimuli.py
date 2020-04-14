@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
-sns.set(style='white', palette='Set2')
+mpl.use('agg')
+sns.set(style='whitegrid', palette='Set2')
 
 
 def standardize(series):
@@ -11,18 +13,13 @@ def standardize(series):
 
 df = pd.read_csv('noun_phrases.tsv', sep='\t', comment='#')
 
-# compute bigram quantiles
-df['bigram_pct'] = df['bigram_freq'].rank(pct=True)
-
 # subset
-df = df[df['bigram_pct'] > .95]
+#df = df[df['bigram_freq_per_million'] > .1]
 
-# compute tp quantiles
-df['ftp_pct'] = df['ftp'].rank(pct=True)
-df['btp_pct'] = df['btp'].rank(pct=True)
-
+# make some histograms
 plt.clf()
 g = sns.distplot(df['log_bigram_freq'])
+plt.savefig('log_bigram_freq.pdf')
 plt.savefig('log_bigram_freq.png', dpi=600)
 
 plt.clf()
@@ -33,10 +30,19 @@ plt.clf()
 g = sns.distplot(df['log_ftp'])
 plt.savefig('log_ftp.png', dpi=600)
 
+plt.clf()
+g = sns.jointplot(df['log_ftp'], df['log_btp'], kind="hex")
+plt.savefig('log_ftp_by_log_btp.pdf')
+plt.savefig('log_ftp_by_log_btp.png', dpi=600)
+
+# percentiles within selection
+df['ftp_pct'] = df['ftp'].rank(pct=True)
+df['btp_pct'] = df['btp'].rank(pct=True)
+
 lower = .2
 upper = .8
-mid_lower = .4
-mid_upper = .6
+mid_lower = .3
+mid_upper = .7
 
 print('high ftp')
 # select high ftp stims

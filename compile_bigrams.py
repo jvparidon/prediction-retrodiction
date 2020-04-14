@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 
-df_bigrams = pd.read_csv('words_bigram_freqs.tsv', sep='\t', comment='#')
-df_unigrams = pd.read_csv('words_unigram_freqs.tsv', sep='\t', comment='#')
+df_bigrams = pd.read_csv('nl.words.bigrams.tsv', sep='\t', comment='#')
+df_unigrams = pd.read_csv('nl.words.unigrams.tsv', sep='\t', comment='#')
 df_subtlex = pd.read_csv('subtlex.tsv', sep='\t', comment='#')[['Word', 'dominant.pos']]  # immediately dump useless columns
 
 # join dominant POS to unigram freqs
@@ -21,6 +21,9 @@ df_unigrams2 = df_unigrams.rename(columns={'unigram': 'unigram2', 'unigram_freq'
 df_bigrams = df_bigrams.merge(df_unigrams2, left_on='unigram2', right_on='unigram2')
 
 df_bigrams = df_bigrams.dropna()  # drop rows with missing values
+df_bigrams['bigram_freq'] = df_bigrams['bigram_freq'] / 3
+df_bigrams['unigram1_freq'] = df_bigrams['unigram1_freq'] / 3
+df_bigrams['unigram2_freq'] = df_bigrams['unigram2_freq'] / 3
 
 # compute forward and backward transitional probabilities
 df_bigrams['ftp'] = df_bigrams['bigram_freq'] / df_bigrams['unigram1_freq']
@@ -33,4 +36,13 @@ df_bigrams['log_unigram2_freq'] = np.log(df_bigrams['unigram2_freq'])
 df_bigrams['log_ftp'] = np.log(df_bigrams['ftp'])
 df_bigrams['log_btp'] = np.log(df_bigrams['btp'])
 
+# compute frequency per million
+df_bigrams['bigram_freq_per_million'] = df_bigrams['bigram_freq'] / (df_bigrams['bigram_freq'].sum() / 1e6)  # 1486.607706
+
+# compute quantiles
+df_bigrams['bigram_pct'] = df_bigrams['bigram_freq'].rank(pct=True)
+df_bigrams['ftp_pct'] = df_bigrams['ftp'].rank(pct=True)
+df_bigrams['btp_pct'] = df_bigrams['btp'].rank(pct=True)
+
+df_bigrams = df_bigrams.sort_values('bigram_freq', ascending=False)
 df_bigrams.to_csv('bigrams_all.tsv', sep='\t', index=False)  # write to file
