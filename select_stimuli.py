@@ -12,9 +12,10 @@ def standardize(series):
 
 
 df = pd.read_csv('noun_phrases.tsv', sep='\t', comment='#')
-
-# subset
-#df = df[df['bigram_freq_per_million'] > .1]
+df['len_unigram1'] = df['unigram1'].str.len()
+df['len_unigram2'] = df['unigram2'].str.len()
+df = df[df['len_unigram1'] > 1]
+df = df[df['len_unigram2'] > 1]
 
 # make some histograms
 plt.clf()
@@ -41,8 +42,8 @@ df['btp_pct'] = df['btp'].rank(pct=True)
 
 lower = .2
 upper = .8
-mid_lower = .3
-mid_upper = .7
+mid_lower = .4
+mid_upper = .6
 
 print('high ftp')
 # select high ftp stims
